@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/go-stable-1.15-source-code-reading.iml" filepath="$PROJECT_DIR$/.idea/go-stable-1.15-source-code-reading.iml" />
+    </modules>
+  </component>
+</project>
