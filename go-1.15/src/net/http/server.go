@@ -2515,8 +2515,7 @@ func ServeTLS(l net.Listener, handler Handler, certFile, keyFile string) error {
 	return srv.ServeTLS(l, certFile, keyFile)
 }
 
-// A Server defines parameters for running an HTTP server.
-// The zero value for Server is a valid configuration.
+// A Server定义运行HTTP服务器的参数,Server的零值是一个有效配置。
 type Server struct {
 	// Addr optionally specifies the TCP address for the server to listen on,
 	// in the form "host:port". If empty, ":http" (port 80) is used.

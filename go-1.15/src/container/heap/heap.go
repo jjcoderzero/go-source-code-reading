@@ -1,7 +1,3 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Package heap provides heap operations for any type that implements
 // heap.Interface. A heap is a tree with the property that each node is the
 // minimum-valued node in its subtree.
@@ -30,7 +26,7 @@ import "sort"
 // implementation to call. To add and remove things from the heap,
 // use heap.Push and heap.Pop.
 type Interface interface {
-	sort.Interface
+	sort.Interface // 扩展排序接口
 	Push(x interface{}) // add x as element Len()
 	Pop() interface{}   // remove and return element Len() - 1.
 }
@@ -40,15 +36,15 @@ type Interface interface {
 // and may be called whenever the heap invariants may have been invalidated.
 // The complexity is O(n) where n = h.Len().
 func Init(h Interface) {
-	// heapify
+	// 构建堆
 	n := h.Len()
 	for i := n/2 - 1; i >= 0; i-- {
 		down(h, i, n)
 	}
 }
 
-// Push pushes the element x onto the heap.
-// The complexity is O(log n) where n = h.Len().
+// Push 将元素x添加到堆上
+// 复杂度为 O(log n)，其中 n = h.Len()
 func Push(h Interface, x interface{}) {
 	h.Push(x)
 	up(h, h.Len()-1)

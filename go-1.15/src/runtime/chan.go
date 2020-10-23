@@ -1,7 +1,3 @@
-// Copyright 2014 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package runtime
 
 // This file contains the implementation of Go channels.
@@ -30,24 +26,24 @@ const (
 )
 
 type hchan struct {
-	qcount   uint           // total data in the queue
-	dataqsiz uint           // size of the circular queue
-	buf      unsafe.Pointer // points to an array of dataqsiz elements
-	elemsize uint16
-	closed   uint32
-	elemtype *_type // element type
-	sendx    uint   // send index
-	recvx    uint   // receive index
-	recvq    waitq  // list of recv waiters
-	sendq    waitq  // list of send waiters
-
+	qcount   uint           // 当前队列中剩余元素个数
+	dataqsiz uint           // 环形队列长度，即可以存放的元素个数
+	buf      unsafe.Pointer // 环形队列指针
+	elemsize uint16         // 每个元素的大小
+	closed   uint32         // 标识关闭状态
+	elemtype *_type         // 元素类型
+	sendx    uint           // 队列下标，指示元素写入时存放到队列中的位置
+	recvx    uint           // 队列下标，指示元素从队列的该位置读出
+	recvq    waitq          // 等待读消息的goroutine队列
+	sendq    waitq          // 等待写消息的goroutine队列
+	// 一般情况下recvq和sendq至少有一个为空。只有一个例外，那就是同一个goroutine使用select语句向channel一边写数据，一边读数据。
 	// lock protects all fields in hchan, as well as several
 	// fields in sudogs blocked on this channel.
 	//
 	// Do not change another G's status while holding this lock
 	// (in particular, do not ready a G), as this can deadlock
 	// with stack shrinking.
-	lock mutex
+	lock mutex // 互斥锁，chan不允许并发读写
 }
 
 type waitq struct {
@@ -91,7 +87,7 @@ func makechan(t *chantype, size int) *hchan {
 	var c *hchan
 	switch {
 	case mem == 0:
-		// Queue or element size is zero.
+		// Queue or element 的大小是0
 		c = (*hchan)(mallocgc(hchanSize, nil, true))
 		// Race detector uses this location for synchronization.
 		c.buf = c.raceaddr()
