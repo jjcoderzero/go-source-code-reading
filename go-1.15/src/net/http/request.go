@@ -1,8 +1,4 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// HTTP Request reading and parsing.
+// 读取和解析HTTP请求.
 
 package http
 
@@ -34,14 +30,12 @@ const (
 	defaultMaxMemory = 32 << 20 // 32 MB
 )
 
-// ErrMissingFile is returned by FormFile when the provided file field name
-// is either not present in the request or not a file field.
+// ErrMissingFile 由FormFile返回，当提供的文件字段名不在请求中或不在文件字段中时
 var ErrMissingFile = errors.New("http: no such file")
 
-// ProtocolError represents an HTTP protocol error.
+// ProtocolError 表示http协议错误.
 //
-// Deprecated: Not all errors in the http package related to protocol errors
-// are of type ProtocolError.
+// 已弃用:并非http包中与协议错误相关的所有错误都属于ProtocolError类型
 type ProtocolError struct {
 	ErrorString string
 }
@@ -49,14 +43,10 @@ type ProtocolError struct {
 func (pe *ProtocolError) Error() string { return pe.ErrorString }
 
 var (
-	// ErrNotSupported is returned by the Push method of Pusher
-	// implementations to indicate that HTTP/2 Push support is not
-	// available.
+	// 由Pusher实现的Push方法返回ErrNotSupported，表示HTTP/2 Push支持不可用.
 	ErrNotSupported = &ProtocolError{"feature not supported"}
 
-	// Deprecated: ErrUnexpectedTrailer is no longer returned by
-	// anything in the net/http package. Callers should not
-	// compare errors against this variable.
+	// Deprecated: ErrUnexpectedTrailer不再由网络/http包中的任何东西返回。调用者不应该将错误与此变量进行比较.
 	ErrUnexpectedTrailer = &ProtocolError{"trailer header without chunked transfer encoding"}
 
 	// ErrMissingBoundary is returned by Request.MultipartReader when the
@@ -101,39 +91,26 @@ var reqWriteExcludeHeader = map[string]bool{
 // usage. In addition to the notes on the fields below, see the
 // documentation for Request.Write and RoundTripper.
 type Request struct {
-	// Method specifies the HTTP method (GET, POST, PUT, etc.).
-	// For client requests, an empty string means GET.
+	// Method 指定HTTP方法(GET、POST、PUT等)。对于客户端请求，空字符串表示GET.
 	//
-	// Go's HTTP client does not support sending a request with
-	// the CONNECT method. See the documentation on Transport for
-	// details.
+	// Go的HTTP客户端不支持用CONNECT方法发送请求。
 	Method string
 
-	// URL specifies either the URI being requested (for server
-	// requests) or the URL to access (for client requests).
+	// URL指定被请求的URI(用于服务器请求)或要访问的URL(用于客户机请求)
 	//
-	// For server requests, the URL is parsed from the URI
-	// supplied on the Request-Line as stored in RequestURI.  For
-	// most requests, fields other than Path and RawQuery will be
-	// empty. (See RFC 7230, Section 5.3)
+	// 对于服务器请求，URL解析为请求行上提供的URI，这些URI存储在RequestURI中。对于大多数请求，除Path和RawQuery之外的字段将为空。
 	//
-	// For client requests, the URL's Host specifies the server to
-	// connect to, while the Request's Host field optionally
-	// specifies the Host header value to send in the HTTP
-	// request.
+	// 对于客户机请求，URL的主机指定要连接的服务器，而请求的主机字段可选地指定要在HTTP请求中发送的主机头值。
 	URL *url.URL
 
-	// The protocol version for incoming server requests.
+	// 用于传入服务器请求的协议版本.
 	//
-	// For client requests, these fields are ignored. The HTTP
-	// client code always uses either HTTP/1.1 or HTTP/2.
-	// See the docs on Transport for details.
+	// 对于客户端请求，这些字段将被忽略。HTTP客户端代码总是使用HTTP/1.1或HTTP/2
 	Proto      string // "HTTP/1.0"
 	ProtoMajor int    // 1
 	ProtoMinor int    // 0
 
-	// Header contains the request header fields either received
-	// by the server or to be sent by the client.
+	// Header包含由服务器接收或由客户端发送的请求头字段
 	//
 	// If a server received a request with header lines,
 	//

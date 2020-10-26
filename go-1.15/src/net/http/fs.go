@@ -700,17 +700,14 @@ type fileHandler struct {
 	root FileSystem
 }
 
-// FileServer returns a handler that serves HTTP requests
-// with the contents of the file system rooted at root.
+// FileServer返回一个处理程序，该处理程序为根文件系统的内容提供HTTP请求
 //
 // To use the operating system's file system implementation,
 // use http.Dir:
 //
 //     http.Handle("/", http.FileServer(http.Dir("/tmp")))
 //
-// As a special case, the returned file server redirects any request
-// ending in "/index.html" to the same path, without the final
-// "index.html".
+// 作为一种特殊情况，返回的文件服务器将重定向任何以“/index”结尾的请求。，而没有最终的“index.html”.
 func FileServer(root FileSystem) Handler {
 	return &fileHandler{root}
 }

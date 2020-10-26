@@ -1,7 +1,3 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 /*
 	Package flag implements command-line flag parsing.
 
@@ -79,16 +75,13 @@ import (
 	"time"
 )
 
-// ErrHelp is the error returned if the -help or -h flag is invoked
-// but no such flag is defined.
+// ErrHelp是在调用-help或-h标志但未定义此类标志时返回的错误.
 var ErrHelp = errors.New("flag: help requested")
 
-// errParse is returned by Set if a flag's value fails to parse, such as with an invalid integer for Int.
-// It then gets wrapped through failf to provide more information.
+//errParse由Set返回,如果标记的值无法解析，如用于Int的无效整数，然后通过failf对其进行包装，以提供更多信息.
 var errParse = errors.New("parse error")
 
-// errRange is returned by Set if a flag's value is out of range.
-// It then gets wrapped through failf to provide more information.
+// errRange 由Set返回如果标记的值超过范围，然后通过failf对其进行包装，以提供更多信息.
 var errRange = errors.New("value out of range")
 
 func numError(err error) error {

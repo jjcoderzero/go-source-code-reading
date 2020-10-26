@@ -1,7 +1,3 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package http
 
 // HTTP status codes as registered with IANA.
@@ -145,8 +141,7 @@ var statusText = map[int]string{
 	StatusNetworkAuthenticationRequired: "Network Authentication Required",
 }
 
-// StatusText returns a text for the HTTP status code. It returns the empty
-// string if the code is unknown.
+// StatusText 返回HTTP状态码的文本。如果代码未知，则返回空字符串.
 func StatusText(code int) string {
 	return statusText[code]
 }

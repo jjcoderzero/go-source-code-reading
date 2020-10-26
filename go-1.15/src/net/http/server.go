@@ -35,9 +35,7 @@ import (
 
 // Errors used by the HTTP server.
 var (
-	// ErrBodyNotAllowed is returned by ResponseWriter.Write calls
-	// when the HTTP method or response code does not permit a
-	// body.
+	// 当HTTP 方法或响应码不允许有body,ErrBodyNotAllowed被ResponseWriter.Writer调用返回。
 	ErrBodyNotAllowed = errors.New("http: request method or response status code does not allow body")
 
 	// ErrHijacked is returned by ResponseWriter.Write calls when
@@ -2222,8 +2220,8 @@ func RedirectHandler(url string, code int) Handler {
 type ServeMux struct {
 	mu    sync.RWMutex
 	m     map[string]muxEntry
-	es    []muxEntry // slice of entries sorted from longest to shortest.
-	hosts bool       // whether any patterns contain hostnames
+	es    []muxEntry // 从最长到最短排序的条目的切片.
+	hosts bool       // 任何模式是否包含主机名
 }
 
 type muxEntry struct {
@@ -2231,15 +2229,15 @@ type muxEntry struct {
 	pattern string
 }
 
-// NewServeMux allocates and returns a new ServeMux.
+// NewServeMux分配并返回一个新的ServeMux.
 func NewServeMux() *ServeMux { return new(ServeMux) }
 
-// DefaultServeMux is the default ServeMux used by Serve.
+// DefaultServeMux是Serve使用的默认ServeMux.
 var DefaultServeMux = &defaultServeMux
 
 var defaultServeMux ServeMux
 
-// cleanPath returns the canonical path for p, eliminating . and .. elements.
+// cleanPath返回p的标准路径，消除该路径.和. .元素.
 func cleanPath(p string) string {
 	if p == "" {
 		return "/"
@@ -2248,10 +2246,10 @@ func cleanPath(p string) string {
 		p = "/" + p
 	}
 	np := path.Clean(p)
-	// path.Clean removes trailing slash except for root;
-	// put the trailing slash back if necessary.
+	// path.Clean 除去除根目录以外的尾随斜杠;
+	// 如有必要，将后面的斜杠放回去.
 	if p[len(p)-1] == '/' && np != "/" {
-		// Fast path for common case of p being the string we want:
+		// 对于我们想要的字符串p是常见情况的快速路径:
 		if len(p) == len(np)+1 && strings.HasPrefix(p, np) {
 			np = p
 		} else {
@@ -2462,7 +2460,7 @@ func appendSorted(es []muxEntry, e muxEntry) []muxEntry {
 	return es
 }
 
-// HandleFunc registers the handler function for the given pattern.
+// HandleFunc 为给定模式注册处理程序函数.
 func (mux *ServeMux) HandleFunc(pattern string, handler func(ResponseWriter, *Request)) {
 	if handler == nil {
 		panic("http: nil handler")
@@ -2517,30 +2515,21 @@ func ServeTLS(l net.Listener, handler Handler, certFile, keyFile string) error {
 
 // A Server定义运行HTTP服务器的参数,Server的零值是一个有效配置。
 type Server struct {
-	// Addr optionally specifies the TCP address for the server to listen on,
-	// in the form "host:port". If empty, ":http" (port 80) is used.
+	// Addr可以选择指定服务器监听的TCP地址，形式为“host:port”。如果为空，则使用":http"(端口80).
 	// The service names are defined in RFC 6335 and assigned by IANA.
 	// See net.Dial for details of the address format.
 	Addr string
 
 	Handler Handler // handler to invoke, http.DefaultServeMux if nil
 
-	// TLSConfig optionally provides a TLS configuration for use
-	// by ServeTLS and ListenAndServeTLS. Note that this value is
-	// cloned by ServeTLS and ListenAndServeTLS, so it's not
-	// possible to modify the configuration with methods like
-	// tls.Config.SetSessionTicketKeys. To use
-	// SetSessionTicketKeys, use Server.Serve with a TLS Listener
-	// instead.
+	// TLSConfig可选地提供了一个TLS配置供ServeTLS和ListenAndServeTLS使用。
+	// 注意，这个值是由ServeTLS和ListenAndServeTLS克隆的，因此不可能使用像tls.Config.SetSessionTicketKeys这样的方法修改配置。
+	// 要使用SetSessionTicketKeys，请使用Server.Serve和TLS侦听器代替
 	TLSConfig *tls.Config
 
-	// ReadTimeout is the maximum duration for reading the entire
-	// request, including the body.
+	// ReadTimeout是读取整个请求(包括请求体)的最大持续时间.
 	//
-	// Because ReadTimeout does not let Handlers make per-request
-	// decisions on each request body's acceptable deadline or
-	// upload rate, most users will prefer to use
-	// ReadHeaderTimeout. It is valid to use them both.
+	// 因为ReadTimeout不让处理程序对每个请求主体的可接受的期限或上载率做出决定，大多数用户更喜欢使用ReadHeaderTimeout。同时使用它们是有效的。.
 	ReadTimeout time.Duration
 
 	// ReadHeaderTimeout is the amount of time allowed to read
@@ -2842,21 +2831,19 @@ func (sh serverHandler) ServeHTTP(rw ResponseWriter, req *Request) {
 	handler.ServeHTTP(rw, req)
 }
 
-// ListenAndServe listens on the TCP network address srv.Addr and then
-// calls Serve to handle requests on incoming connections.
-// Accepted connections are configured to enable TCP keep-alives.
+// ListenAndServe 监听TCP网络地址 srv.Addr然后调用服务处理传入连接上的请求。
+// 已接受的连接配置为启用TCP keep-alives.
 //
 // If srv.Addr is blank, ":http" is used.
 //
-// ListenAndServe always returns a non-nil error. After Shutdown or Close,
-// the returned error is ErrServerClosed.
+// ListenAndServe 总是返回一个非nil错误。关闭或关闭后，返回的错误是ErrServerClosed.
 func (srv *Server) ListenAndServe() error {
 	if srv.shuttingDown() {
 		return ErrServerClosed
 	}
 	addr := srv.Addr
 	if addr == "" {
-		addr = ":http"
+		addr = ":http" // port default 80
 	}
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -3107,23 +3094,17 @@ func logf(r *Request, format string, args ...interface{}) {
 	}
 }
 
-// ListenAndServe listens on the TCP network address addr and then calls
-// Serve with handler to handle requests on incoming connections.
-// Accepted connections are configured to enable TCP keep-alives.
-//
-// The handler is typically nil, in which case the DefaultServeMux is used.
-//
-// ListenAndServe always returns a non-nil error.
+//ListenAndServe监听TCP网络地址addr，然后调用处理程序处理传入连接上的请求。
+//已接受的连接配置为启用TCP keep-alives。
+//处理程序通常为nil，在这种情况下使用DefaultServeMux。
+// ListenAndServe总是返回一个非nil错误
 func ListenAndServe(addr string, handler Handler) error {
 	server := &Server{Addr: addr, Handler: handler}
 	return server.ListenAndServe()
 }
 
-// ListenAndServeTLS acts identically to ListenAndServe, except that it
-// expects HTTPS connections. Additionally, files containing a certificate and
-// matching private key for the server must be provided. If the certificate
-// is signed by a certificate authority, the certFile should be the concatenation
-// of the server's certificate, any intermediates, and the CA's certificate.
+// ListenAndServeTLS的行为与ListenAndServe相同，除了它期望的HTTPS连接。此外，必须提供包含证书和与服务器匹配的私钥的文件。
+// 如果证书是由证书颁发机构签署的，那么certFile应该是服务器证书、任何中间体和CA证书的连接
 func ListenAndServeTLS(addr, certFile, keyFile string, handler Handler) error {
 	server := &Server{Addr: addr, Handler: handler}
 	return server.ListenAndServeTLS(certFile, keyFile)
