@@ -1,14 +1,8 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// Package strings implements simple functions to manipulate UTF-8 encoded strings.
-//
-// For information about UTF-8 strings in Go, see https://blog.golang.org/strings.
+// 包字符串实现了简单的函数来操作UTF-8编码的字符串.
 package strings
 
 import (
-	"internal/bytealg"
+	"std/internal/bytealg"
 	"unicode"
 	"unicode/utf8"
 )
@@ -36,12 +30,11 @@ func explode(s string, n int) []string {
 	return a
 }
 
-// Count counts the number of non-overlapping instances of substr in s.
-// If substr is an empty string, Count returns 1 + the number of Unicode code points in s.
+// Count对s中substr的不重叠实例的数量进行计数。
 func Count(s, substr string) int {
 	// special case
 	if len(substr) == 0 {
-		return utf8.RuneCountInString(s) + 1
+		return utf8.RuneCountInString(s) + 1 //如果substr是空字符串，Count将返回1 + s中Unicode代码点的数量。
 	}
 	if len(substr) == 1 {
 		return bytealg.CountString(s, substr[0])
@@ -57,22 +50,22 @@ func Count(s, substr string) int {
 	}
 }
 
-// Contains reports whether substr is within s.
+// Contains 报告substr是否在s内.
 func Contains(s, substr string) bool {
 	return Index(s, substr) >= 0
 }
 
-// ContainsAny reports whether any Unicode code points in chars are within s.
+// ContainsAny 判断字符串s是否包含字符串chars中的任一字符。
 func ContainsAny(s, chars string) bool {
 	return IndexAny(s, chars) >= 0
 }
 
-// ContainsRune reports whether the Unicode code point r is within s.
+// ContainsRune 报告Unicode代码点r是否在s中.
 func ContainsRune(s string, r rune) bool {
 	return IndexRune(s, r) >= 0
 }
 
-// LastIndex returns the index of the last instance of substr in s, or -1 if substr is not present in s.
+// LastIndex 返回s中substr的最后一个实例的索引，如果s中没有substr，则返回-1.
 func LastIndex(s, substr string) int {
 	n := len(substr)
 	switch {
@@ -109,7 +102,7 @@ func LastIndex(s, substr string) int {
 	return -1
 }
 
-// IndexByte returns the index of the first instance of c in s, or -1 if c is not present in s.
+// IndexByte 返回c在s中的第一个实例的索引，如果c不在s中，则返回-1.
 func IndexByte(s string, c byte) int {
 	return bytealg.IndexByteString(s, c)
 }
@@ -1020,7 +1013,7 @@ func EqualFold(s, t string) bool {
 	return s == t
 }
 
-// Index returns the index of the first instance of substr in s, or -1 if substr is not present in s.
+// Index 返回s中substr的第一个实例的索引，如果s中没有substr，则返回-1.
 func Index(s, substr string) int {
 	n := len(substr)
 	switch {
