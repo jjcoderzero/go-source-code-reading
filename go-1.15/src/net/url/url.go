@@ -1,14 +1,5 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// Package url parses URLs and implements query escaping.
+// 包url解析url并实现查询转义。
 package url
-
-// See RFC 3986. This package generally follows RFC 3986, except where
-// it deviates for compatibility reasons. When sending changes, first
-// search old issues for history on decisions. Unit tests should also
-// contain references to issue numbers with details.
 
 import (
 	"errors"
@@ -18,10 +9,10 @@ import (
 	"strings"
 )
 
-// Error reports an error and the operation and URL that caused it.
+// Error报告一个错误以及导致该错误的操作和URL。
 type Error struct {
-	Op  string
-	URL string
+	Op  string // 导致错误的操作
+	URL string // 导致错误的URL
 	Err error
 }
 
@@ -871,16 +862,10 @@ func (u *URL) Redacted() string {
 	return ru.String()
 }
 
-// Values maps a string key to a list of values.
-// It is typically used for query parameters and form values.
-// Unlike in the http.Header map, the keys in a Values map
-// are case-sensitive.
+// Values将一个字符串键映射到一个值列表。它通常用于查询参数和表单值。与http不同。标题映射，值映射中的键是区分大小写的。
 type Values map[string][]string
 
-// Get gets the first value associated with the given key.
-// If there are no values associated with the key, Get returns
-// the empty string. To access multiple values, use the map
-// directly.
+// Get获取与给定键相关联的第一个值。如果没有与键相关联的值，则Get返回空字符串。要访问多个值，请直接使用映射。
 func (v Values) Get(key string) string {
 	if v == nil {
 		return ""
@@ -892,8 +877,7 @@ func (v Values) Get(key string) string {
 	return vs[0]
 }
 
-// Set sets the key to value. It replaces any existing
-// values.
+// Set将键设置为值。它替换任何现有值。
 func (v Values) Set(key, value string) {
 	v[key] = []string{value}
 }
@@ -1185,7 +1169,7 @@ func validUserinfo(s string) bool {
 	return true
 }
 
-// stringContainsCTLByte reports whether s contains any ASCII control character.
+// stringContainsCTLByte报告s是否包含任何ASCII控制字符。
 func stringContainsCTLByte(s string) bool {
 	for i := 0; i < len(s); i++ {
 		b := s[i]

@@ -1,10 +1,4 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// Package bufio implements buffered I/O. It wraps an io.Reader or io.Writer
-// object, creating another object (Reader or Writer) that also implements
-// the interface but provides buffering and some help for textual I/O.
+// 包bufio实现了缓冲I/O。它包装了一个io.Reader或io.Writer对象，创建另一个对象(Reader or Writer)，该对象也实现接口，但为文本I/O提供缓冲和一些帮助。
 package bufio
 
 import (
@@ -16,7 +10,7 @@ import (
 )
 
 const (
-	defaultBufSize = 4096
+	defaultBufSize = 4096 // 默认的buff大小
 )
 
 var (
@@ -28,14 +22,14 @@ var (
 
 // Buffered input.
 
-// Reader implements buffering for an io.Reader object.
+// Reader为io.Reader对象实现缓存
 type Reader struct {
 	buf          []byte
-	rd           io.Reader // reader provided by the client
-	r, w         int       // buf read and write positions
+	rd           io.Reader // 客户端提供的reader
+	r, w         int       // buf读取和写入位置
 	err          error
-	lastByte     int // last byte read for UnreadByte; -1 means invalid
-	lastRuneSize int // size of last rune read for UnreadRune; -1 means invalid
+	lastByte     int // 为未读字节读的最后一个字节;-1是无效的
+	lastRuneSize int // 未读rune的最后一次rune读取的大小;-1是无效的
 }
 
 const minReadBufferSize = 16
@@ -44,6 +38,7 @@ const maxConsecutiveEmptyReads = 100
 // NewReaderSize returns a new Reader whose buffer has at least the specified
 // size. If the argument io.Reader is already a Reader with large enough
 // size, it returns the underlying Reader.
+// NewReaderSize返回一个新的Reader，其缓冲区至少具有指定的大小。如果参数io.Reader已经是一个足够大的Reader，它返回底层的Reader。
 func NewReaderSize(rd io.Reader, size int) *Reader {
 	// Is it already a Reader?
 	b, ok := rd.(*Reader)
