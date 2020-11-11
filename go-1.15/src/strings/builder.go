@@ -5,18 +5,13 @@ import (
 	"unsafe"
 )
 
-// Builder用于使用Write方法有效的构建字符串。
-// It minimizes memory copying. The zero value is ready to use.
-// Do not copy a non-zero Builder.
+// Builder用于使用Write方法有效的构建字符串。它最小化内存复制。零值已经可以使用了。不要复制一个非零构建器。
 type Builder struct {
-	addr *Builder // of receiver, to detect copies by value
+	addr *Builder // 在接收端，通过值检测拷贝
 	buf  []byte
 }
 
-// noescape hides a pointer from escape analysis.  noescape is
-// the identity function but escape analysis doesn't think the
-// output depends on the input. noescape is inlined and currently
-// compiles down to zero instructions.
+// noescape在转义分析中隐藏指针。noescape是恒等函数，但escape分析认为输出并不依赖于输入。noescape是内联的，目前编译到零指令。
 // USE CAREFULLY!
 // This was copied from the runtime; see issues 23382 and 7921.
 //go:nosplit

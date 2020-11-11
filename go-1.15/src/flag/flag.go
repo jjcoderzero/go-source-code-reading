@@ -643,8 +643,7 @@ func (f *FlagSet) IntVar(p *int, name string, value int, usage string) {
 	f.Var(newIntValue(value, p), name, usage)
 }
 
-// IntVar defines an int flag with specified name, default value, and usage string.
-// The argument p points to an int variable in which to store the value of the flag.
+// IntVar用指定的名称、默认值和使用字符串定义一个int标志。参数p指向一个int变量，要在其中存储标志的值。
 func IntVar(p *int, name string, value int, usage string) {
 	CommandLine.Var(newIntValue(value, p), name, usage)
 }
@@ -735,14 +734,12 @@ func (f *FlagSet) Uint64(name string, value uint64, usage string) *uint64 {
 	return p
 }
 
-// Uint64 defines a uint64 flag with specified name, default value, and usage string.
-// The return value is the address of a uint64 variable that stores the value of the flag.
+// Uint64用指定的名称、默认值和使用字符串定义uint64标志。返回值是存储标志值的uint64变量的地址。
 func Uint64(name string, value uint64, usage string) *uint64 {
 	return CommandLine.Uint64(name, value, usage)
 }
 
-// StringVar defines a string flag with specified name, default value, and usage string.
-// The argument p points to a string variable in which to store the value of the flag.
+// StringVar定义具有指定名称、默认值和使用字符串的字符串标志。参数p指向一个字符串变量，在其中存储标志的值。
 func (f *FlagSet) StringVar(p *string, name string, value string, usage string) {
 	f.Var(newStringValue(value, p), name, usage)
 }
@@ -753,16 +750,14 @@ func StringVar(p *string, name string, value string, usage string) {
 	CommandLine.Var(newStringValue(value, p), name, usage)
 }
 
-// String defines a string flag with specified name, default value, and usage string.
-// The return value is the address of a string variable that stores the value of the flag.
+// String定义具有指定名称、默认值和使用字符串的字符串标志。返回值是存储标志值的字符串变量的地址。
 func (f *FlagSet) String(name string, value string, usage string) *string {
 	p := new(string)
 	f.StringVar(p, name, value, usage)
 	return p
 }
 
-// String defines a string flag with specified name, default value, and usage string.
-// The return value is the address of a string variable that stores the value of the flag.
+// String定义具有指定名称、默认值和使用字符串的字符串标志。返回值是存储标志值的字符串变量的地址。
 func String(name string, value string, usage string) *string {
 	return CommandLine.String(name, value, usage)
 }
@@ -1017,9 +1012,7 @@ func commandLineUsage() {
 	Usage()
 }
 
-// NewFlagSet returns a new, empty flag set with the specified name and
-// error handling property. If the name is not empty, it will be printed
-// in the default usage message and in error messages.
+// NewFlagSet返回一个新的空标记集，带有指定的名称和错误处理属性。如果名称不是空的，它将在默认用法消息和错误消息中打印。
 func NewFlagSet(name string, errorHandling ErrorHandling) *FlagSet {
 	f := &FlagSet{
 		name:          name,
@@ -1029,9 +1022,7 @@ func NewFlagSet(name string, errorHandling ErrorHandling) *FlagSet {
 	return f
 }
 
-// Init sets the name and error handling property for a flag set.
-// By default, the zero FlagSet uses an empty name and the
-// ContinueOnError error handling policy.
+// Init设置一个标记集的名称和错误处理属性。默认情况下，zero FlagSet使用一个空名称和ContinueOnError错误处理策略。
 func (f *FlagSet) Init(name string, errorHandling ErrorHandling) {
 	f.name = name
 	f.errorHandling = errorHandling

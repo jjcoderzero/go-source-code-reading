@@ -1,17 +1,9 @@
-/*
-	Package unsafe contains operations that step around the type safety of Go programs.
-
-	Packages that import unsafe may be non-portable and are not protected by the
-	Go 1 compatibility guidelines.
-*/
 package unsafe
 
-// ArbitraryType is here for the purposes of documentation only and is not actually
-// part of the unsafe package. It represents the type of an arbitrary Go expression.
+// 这里的ArbitraryType只是为了文档的目的，实际上并不是unsafe的一部分。它表示任意Go表达式的类型。
 type ArbitraryType int
 
-// Pointer represents a pointer to an arbitrary type. There are four special operations
-// available for type Pointer that are not available for other types:
+// 指针表示指向任意类型的指针。有四种类型指针的特殊操作是其他类型不可用的:
 //	- A pointer value of any type can be converted to a Pointer.
 //	- A Pointer can be converted to a pointer value of any type.
 //	- A uintptr can be converted to a Pointer.

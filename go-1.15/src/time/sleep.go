@@ -1,11 +1,6 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package time
 
-// Sleep pauses the current goroutine for at least the duration d.
-// A negative or zero duration causes Sleep to return immediately.
+// Sleep会暂停当前goroutine至少持续时间d。如果持续时间为负或为零，则会立即返回Sleep。
 func Sleep(d Duration)
 
 // Interface to timers implemented in package runtime.

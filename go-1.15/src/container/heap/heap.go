@@ -1,40 +1,22 @@
-// Package heap provides heap operations for any type that implements
-// heap.Interface. A heap is a tree with the property that each node is the
-// minimum-valued node in its subtree.
-//
-// The minimum element in the tree is the root, at index 0.
-//
-// A heap is a common way to implement a priority queue. To build a priority
-// queue, implement the Heap interface with the (negative) priority as the
-// ordering for the Less method, so Push adds items while Pop removes the
-// highest-priority item from the queue. The Examples include such an
-// implementation; the file example_pq_test.go has the complete source.
-//
+// 包heap为实现heap.interface的任何类型提供堆操作。堆是一棵树，其属性是每个节点都是其子树中的最小值节点。树中的最小元素是索引0处的根。
+// 堆是实现优先队列的一种常用方法。要构建一个优先级队列，实现以(负)优先级作为Less方法的顺序的堆接口，因此Push添加元素，而Pop从队列中删除最高优先级的元素。
+
 package heap
 
 import "sort"
 
-// The Interface type describes the requirements
-// for a type using the routines in this package.
-// Any type that implements it may be used as a
-// min-heap with the following invariants (established after
-// Init has been called or if the data is empty or sorted):
+// 接口类型描述使用此包中的例程的类型的需求。任何实现它的类型都可以作为最小堆使用以下不变量(在Init被调用后建立，或者如果数据是空的或排序):
 //
 //	!h.Less(j, i) for 0 <= i < h.Len() and 2*i+1 <= j <= 2*i+2 and j < h.Len()
 //
-// Note that Push and Pop in this interface are for package heap's
-// implementation to call. To add and remove things from the heap,
-// use heap.Push and heap.Pop.
+// 注意，这个接口中的Push和Pop是为了调用包堆的实现。要从堆中添加和删除内容，请使用heap.Push和heap.Pop。
 type Interface interface {
 	sort.Interface // 扩展排序接口
-	Push(x interface{}) // add x as element Len()
-	Pop() interface{}   // remove and return element Len() - 1.
+	Push(x interface{}) // 添加x作为元素Len()
+	Pop() interface{}   // 移除并返回元素Len()-1。
 }
 
-// Init establishes the heap invariants required by the other routines in this package.
-// Init is idempotent with respect to the heap invariants
-// and may be called whenever the heap invariants may have been invalidated.
-// The complexity is O(n) where n = h.Len().
+// Init建立这个包中的其他例程所需的堆不变量。Init对于堆不变量是等幂的，并且可以在堆不变量无效时调用。复杂度是O(n)其中n = h.Len()
 func Init(h Interface) {
 	// 构建堆
 	n := h.Len()
@@ -50,9 +32,7 @@ func Push(h Interface, x interface{}) {
 	up(h, h.Len()-1)
 }
 
-// Pop removes and returns the minimum element (according to Less) from the heap.
-// The complexity is O(log n) where n = h.Len().
-// Pop is equivalent to Remove(h, 0).
+// Pop从堆中移除并返回最小元素(根据Less)。复杂度是O(log n)其中n = h.Len()Pop相当于Remove(h, 0)。
 func Pop(h Interface) interface{} {
 	n := h.Len() - 1
 	h.Swap(0, n)
@@ -60,8 +40,7 @@ func Pop(h Interface) interface{} {
 	return h.Pop()
 }
 
-// Remove removes and returns the element at index i from the heap.
-// The complexity is O(log n) where n = h.Len().
+// Remove移除并返回堆中索引i处的元素。复杂度是O(log n)其中n = h.Len()
 func Remove(h Interface, i int) interface{} {
 	n := h.Len() - 1
 	if n != i {
@@ -73,10 +52,7 @@ func Remove(h Interface, i int) interface{} {
 	return h.Pop()
 }
 
-// Fix re-establishes the heap ordering after the element at index i has changed its value.
-// Changing the value of the element at index i and then calling Fix is equivalent to,
-// but less expensive than, calling Remove(h, i) followed by a Push of the new value.
-// The complexity is O(log n) where n = h.Len().
+// Fix在索引i处的元素改变其值后重新建立堆排序。在索引i处更改元素的值，然后调用Fix，这与在推入新值之后调用Remove(h, i)相等，但代价要低一些。复杂度是O(log n)其中n = h.Len()
 func Fix(h Interface, i int) {
 	if !down(h, i, h.Len()) {
 		up(h, i)

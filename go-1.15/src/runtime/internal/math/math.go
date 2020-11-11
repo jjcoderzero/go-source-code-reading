@@ -1,10 +1,6 @@
-// Copyright 2018 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package math
 
-import "runtime/internal/sys"
+import "std/runtime/internal/sys"
 
 const MaxUintptr = ^uintptr(0)
 

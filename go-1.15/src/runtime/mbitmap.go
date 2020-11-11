@@ -1,7 +1,3 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Garbage collector: type and heap bitmaps.
 //
 // Stack, data, and bss bitmaps
@@ -75,8 +71,8 @@
 package runtime
 
 import (
-	"runtime/internal/atomic"
-	"runtime/internal/sys"
+	"std/runtime/internal/atomic"
+	"std/runtime/internal/sys"
 	"unsafe"
 )
 

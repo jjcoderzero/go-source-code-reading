@@ -1,25 +1,21 @@
-// Copyright 2011 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package unicode
 
-// Bit masks for each code point under U+0100, for fast lookup.
+// 为U+0100下的每个代码点进行位掩码，用于快速查找.
 const (
-	pC     = 1 << iota // a control character.
-	pP                 // a punctuation character.
-	pN                 // a numeral.
-	pS                 // a symbolic character.
-	pZ                 // a spacing character.
-	pLu                // an upper-case letter.
-	pLl                // a lower-case letter.
-	pp                 // a printable character according to Go's definition.
-	pg     = pp | pZ   // a graphical character according to the Unicode definition.
-	pLo    = pLl | pLu // a letter that is neither upper nor lower case.
+	pC     = 1 << iota // 一个控制字符。
+	pP                 // 一个标点字符。
+	pN                 // 一个数字。
+	pS                 // 一个符号字符。
+	pZ                 // 一个间隔字符。
+	pLu                // 一个大写字母。
+	pLl                // 一个小写字母。
+	pp                 // 根据Go定义的可打印字符。
+	pg     = pp | pZ   // 根据Unicode定义的图形字符。
+	pLo    = pLl | pLu // 一个既不大写也不小写的字母。
 	pLmask = pLo
 )
 
-// GraphicRanges defines the set of graphic characters according to Unicode.
+// GraphicRanges根据Unicode定义一组图形字符。
 var GraphicRanges = []*RangeTable{
 	L, M, N, P, S, Zs,
 }

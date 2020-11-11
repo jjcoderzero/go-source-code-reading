@@ -1,8 +1,4 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// Package list implements a doubly linked list.
+// 包list实现了一个双重链表。
 //
 // To iterate over a list (where l is a *List):
 //	for e := l.Front(); e != nil; e = e.Next() {
@@ -11,23 +7,17 @@
 //
 package list
 
-// Element is an element of a linked list.
+// Element是链表中的元素。
 type Element struct {
-	// Next and previous pointers in the doubly-linked list of elements.
-	// To simplify the implementation, internally a list l is implemented
-	// as a ring, such that &l.root is both the next element of the last
-	// list element (l.Back()) and the previous element of the first list
-	// element (l.Front()).
-	next, prev *Element
+	// 双链元素列表中的下一个和上一个指针。为了简化实现，在内部将列表l实现为一个环，这样&l.root既是最后一个列表元素(l. back())的下一个元素，也是第一个列表元素(l. front())的前一个元素。
+	next, prev *Element //
 
-	// The list to which this element belongs.
-	list *List
+	list *List // 此元素所属的列表。
 
-	// The value stored with this element.
-	Value interface{}
+	Value interface{} // 与此元素一起存储的值。
 }
 
-// Next returns the next list element or nil.
+// Next返回下一个列表元素或nil。
 func (e *Element) Next() *Element {
 	if p := e.next; e.list != nil && p != &e.list.root {
 		return p
@@ -35,7 +25,7 @@ func (e *Element) Next() *Element {
 	return nil
 }
 
-// Prev returns the previous list element or nil.
+// Prev返回之前的列表元素或nil。
 func (e *Element) Prev() *Element {
 	if p := e.prev; e.list != nil && p != &e.list.root {
 		return p
@@ -43,14 +33,13 @@ func (e *Element) Prev() *Element {
 	return nil
 }
 
-// List represents a doubly linked list.
-// The zero value for List is an empty list ready to use.
+// List表示双链表。List的零值是准备使用的空列表。
 type List struct {
-	root Element // sentinel list element, only &root, root.prev, and root.next are used
-	len  int     // current list length excluding (this) sentinel element
+	root Element // sentinel列表元素，仅使用&root、root.next和root.prev
+	len  int     // 不包括(这个)标记元素的当前列表长度
 }
 
-// Init initializes or clears list l.
+// Init初始化或清除列表l。
 func (l *List) Init() *List {
 	l.root.next = &l.root
 	l.root.prev = &l.root
@@ -58,14 +47,13 @@ func (l *List) Init() *List {
 	return l
 }
 
-// New returns an initialized list.
+// New返回一个初始化的列表。
 func New() *List { return new(List).Init() }
 
-// Len returns the number of elements of list l.
-// The complexity is O(1).
+// Len返回列表l的元素数量，复杂度为O(1)。
 func (l *List) Len() int { return l.len }
 
-// Front returns the first element of list l or nil if the list is empty.
+// Front返回列表l的第一个元素，如果列表为空，则返回nil。
 func (l *List) Front() *Element {
 	if l.len == 0 {
 		return nil
@@ -73,7 +61,7 @@ func (l *List) Front() *Element {
 	return l.root.next
 }
 
-// Back returns the last element of list l or nil if the list is empty.
+// Back返回列表l的最后一个元素，如果列表为空，则返回nil。
 func (l *List) Back() *Element {
 	if l.len == 0 {
 		return nil
@@ -81,14 +69,14 @@ func (l *List) Back() *Element {
 	return l.root.prev
 }
 
-// lazyInit lazily initializes a zero List value.
+// lazyInit惰性地初始化一个零列表值。
 func (l *List) lazyInit() {
 	if l.root.next == nil {
 		l.Init()
 	}
 }
 
-// insert inserts e after at, increments l.len, and returns e.
+// insert在at后面插入e，对l.len进行增量，然后返回e。
 func (l *List) insert(e, at *Element) *Element {
 	e.prev = at
 	e.next = at.next
@@ -99,17 +87,17 @@ func (l *List) insert(e, at *Element) *Element {
 	return e
 }
 
-// insertValue is a convenience wrapper for insert(&Element{Value: v}, at).
+// insertValue是一个方便的insert(&Element{Value: v}， at)包装器。
 func (l *List) insertValue(v interface{}, at *Element) *Element {
 	return l.insert(&Element{Value: v}, at)
 }
 
-// remove removes e from its list, decrements l.len, and returns e.
+// remove从它的列表中移除e，递减l.len，并返回e。
 func (l *List) remove(e *Element) *Element {
 	e.prev.next = e.next
 	e.next.prev = e.prev
-	e.next = nil // avoid memory leaks
-	e.prev = nil // avoid memory leaks
+	e.next = nil // 避免内存泄漏
+	e.prev = nil // 避免内存泄漏
 	e.list = nil
 	l.len--
 	return e
