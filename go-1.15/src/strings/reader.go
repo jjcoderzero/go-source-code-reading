@@ -16,8 +16,7 @@ type Reader struct {
 	prevRune int   // index of previous rune; or < 0
 }
 
-// Len returns the number of bytes of the unread portion of the
-// string.
+// Len返回字符串未读部分的字节数。
 func (r *Reader) Len() int {
 	if r.i >= int64(len(r.s)) {
 		return 0
@@ -25,10 +24,7 @@ func (r *Reader) Len() int {
 	return int(int64(len(r.s)) - r.i)
 }
 
-// Size returns the original length of the underlying string.
-// Size is the number of bytes available for reading via ReadAt.
-// The returned value is always the same and is not affected by calls
-// to any other method.
+// Size返回基础字符串的原始长度。大小是可以通过ReadAt读取的字节数。返回值总是相同的，并且不受调用任何其他方法的影响。
 func (r *Reader) Size() int64 { return int64(len(r.s)) }
 
 func (r *Reader) Read(b []byte) (n int, err error) {

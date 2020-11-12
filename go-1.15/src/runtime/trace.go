@@ -1,7 +1,3 @@
-// Copyright 2014 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Go execution tracer.
 // The tracer captures a wide range of execution events like goroutine
 // creation/blocking/unblocking, syscall enter/exit/block, GC-related events,
@@ -13,7 +9,7 @@
 package runtime
 
 import (
-	"runtime/internal/sys"
+	"std/runtime/internal/sys"
 	"unsafe"
 )
 
