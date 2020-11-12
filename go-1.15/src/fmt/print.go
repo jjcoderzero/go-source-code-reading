@@ -1,20 +1,15 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package fmt
 
 import (
-	"internal/fmtsort"
 	"io"
 	"os"
 	"reflect"
+	"std/internal/fmtsort"
 	"sync"
 	"unicode/utf8"
 )
 
-// Strings for use with buffer.WriteString.
-// This is less overhead than using buffer.Write with byte arrays.
+// 用于buffer.WriteString的字符串。这比使用带有字节数组的buffer.Write的开销要小。
 const (
 	commaSpaceString  = ", "
 	nilAngleString    = "<nil>"
@@ -32,19 +27,12 @@ const (
 	invReflectString  = "<invalid reflect.Value>"
 )
 
-// State represents the printer state passed to custom formatters.
-// It provides access to the io.Writer interface plus information about
-// the flags and options for the operand's format specifier.
+// State表示传递给自定义格式化程序的printer状态。它提供对io的访问。写入器接口以及关于操作数格式说明符的标志和选项的信息。
 type State interface {
-	// Write is the function to call to emit formatted output to be printed.
-	Write(b []byte) (n int, err error)
-	// Width returns the value of the width option and whether it has been set.
-	Width() (wid int, ok bool)
-	// Precision returns the value of the precision option and whether it has been set.
-	Precision() (prec int, ok bool)
-
-	// Flag reports whether the flag c, a character, has been set.
-	Flag(c int) bool
+	Write(b []byte) (n int, err error) // Write是用来发出要打印的格式化输出的函数。
+	Width() (wid int, ok bool) // Width返回宽度选项的值以及该选项是否已被设置。
+	Precision() (prec int, ok bool) // Precision返回Precision选项的值以及是否设置了该选项。
+	Flag(c int) bool // Flag报告标记c(一个字符)是否已经设置。
 }
 
 // Formatter is the interface implemented by values with a custom formatter.
@@ -71,7 +59,7 @@ type GoStringer interface {
 	GoString() string
 }
 
-// Use simple []byte instead of bytes.Buffer to avoid large dependency.
+// 使用简单的[]byte代替bytes.Buffer去避免大的依赖性。
 type buffer []byte
 
 func (b *buffer) write(p []byte) {
@@ -101,38 +89,29 @@ func (bp *buffer) writeRune(r rune) {
 	*bp = b[:n+w]
 }
 
-// pp is used to store a printer's state and is reused with sync.Pool to avoid allocations.
+// pp用于存储printer的状态，并与sync.Pool一起重用以避免分配
 type pp struct {
 	buf buffer
 
-	// arg holds the current item, as an interface{}.
-	arg interface{}
+	arg interface{} // arg保存当前项作为interface{}
 
-	// value is used instead of arg for reflect values.
-	value reflect.Value
+	value reflect.Value // 对反射值使用value而不是arg。
 
-	// fmt is used to format basic items such as integers or strings.
-	fmt fmt
+	fmt fmt // fmt用于格式化基本项，如整数或字符串。
 
-	// reordered records whether the format string used argument reordering.
-	reordered bool
-	// goodArgNum records whether the most recent reordering directive was valid.
-	goodArgNum bool
-	// panicking is set by catchPanic to avoid infinite panic, recover, panic, ... recursion.
-	panicking bool
-	// erroring is set when printing an error string to guard against calling handleMethods.
-	erroring bool
-	// wrapErrs is set when the format string may contain a %w verb.
-	wrapErrs bool
-	// wrappedErr records the target of the %w verb.
-	wrappedErr error
+	reordered bool // 重新排序记录格式字符串是否使用了重新排序参数。
+	goodArgNum bool // goodArgNum记录最近的重新排序指令是否有效。
+	panicking bool // panicking通过设置catchPanic来避免无限的panic, recover, panic, ... recursion.
+	erroring bool // 在打印错误字符串时设置erroring，以防止调用handlememethods。
+	wrapErrs bool // 当格式字符串可能包含%w谓词时设置wrapErrs。
+	wrappedErr error // wrappedErr记录%w谓词的目标。
 }
 
 var ppFree = sync.Pool{
 	New: func() interface{} { return new(pp) },
 }
 
-// newPrinter allocates a new pp struct or grabs a cached one.
+// newPrinter分配一个新的pp结构或抓取一个缓存的。
 func newPrinter() *pp {
 	p := ppFree.Get().(*pp)
 	p.panicking = false
@@ -142,14 +121,9 @@ func newPrinter() *pp {
 	return p
 }
 
-// free saves used pp structs in ppFree; avoids an allocation per invocation.
+// free 存使用的pp结构在ppFree;避免每次调用的分配。
 func (p *pp) free() {
-	// Proper usage of a sync.Pool requires each entry to have approximately
-	// the same memory cost. To obtain this property when the stored type
-	// contains a variably-sized buffer, we add a hard limit on the maximum buffer
-	// to place back in the pool.
-	//
-	// See https://golang.org/issue/23199
+	// sync.Pool的正确使用要求每个条目具有大致相同的内存开销。若要在存储类型包含大小不一的缓冲区时获取此属性，可以对要放回池中的最大缓冲区添加硬限制。
 	if cap(p.buf) > 64<<10 {
 		return
 	}
@@ -181,15 +155,13 @@ func (p *pp) Flag(b int) bool {
 	return false
 }
 
-// Implement Write so we can call Fprintf on a pp (through State), for
-// recursive use in custom verbs.
+// 实现Write，这样我们可以在pp(通过状态)上调用Fprintf，以便在自定义动词中递归使用。
 func (p *pp) Write(b []byte) (ret int, err error) {
 	p.buf.write(b)
 	return len(b), nil
 }
 
-// Implement WriteString so that we can call io.WriteString
-// on a pp (through state), for efficiency.
+// 实现WriteString，这样我们可以在pp(通过状态)上调用io.WriteString，以提高效率。
 func (p *pp) WriteString(s string) (ret int, err error) {
 	p.buf.writeString(s)
 	return len(s), nil
@@ -207,13 +179,12 @@ func Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
 	return
 }
 
-// Printf formats according to a format specifier and writes to standard output.
-// It returns the number of bytes written and any write error encountered.
+// Printf格式根据格式说明符和写入标准输出。它返回写入的字节数和遇到的任何写入错误。
 func Printf(format string, a ...interface{}) (n int, err error) {
 	return Fprintf(os.Stdout, format, a...)
 }
 
-// Sprintf formats according to a format specifier and returns the resulting string.
+// Sprintf根据格式说明符格式化并返回结果字符串。
 func Sprintf(format string, a ...interface{}) string {
 	p := newPrinter()
 	p.doPrintf(format, a)
@@ -222,11 +193,9 @@ func Sprintf(format string, a ...interface{}) string {
 	return s
 }
 
-// These routines do not take a format string
+// 这些goroutine不接受格式字符串
 
-// Fprint formats using the default formats for its operands and writes to w.
-// Spaces are added between operands when neither is a string.
-// It returns the number of bytes written and any write error encountered.
+// Fprint格式使用其操作数的默认格式和写入到w。如果操作数和写入都不是字符串，则在操作数之间添加空格。它返回写入的字节数和遇到的任何写入错误。
 func Fprint(w io.Writer, a ...interface{}) (n int, err error) {
 	p := newPrinter()
 	p.doPrint(a)

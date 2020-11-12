@@ -1,19 +1,9 @@
-// Copyright 2018 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package fmt
 
 import "errors"
 
-// Errorf formats according to a format specifier and returns the string as a
-// value that satisfies error.
-//
-// If the format specifier includes a %w verb with an error operand,
-// the returned error will implement an Unwrap method returning the operand. It is
-// invalid to include more than one %w verb or to supply it with an operand
-// that does not implement the error interface. The %w verb is otherwise
-// a synonym for %v.
+// Errorf根据格式说明符进行格式化，并将字符串作为满足错误的值返回。如果格式说明符包含带有错误操作数的%w谓词，则返回的错误将实现返回该操作数的解包装方法。
+// 包含一个以上的%w谓词或为其提供一个没有实现错误接口的操作数是无效的。动词%w在其他情况下是%v的同义词。
 func Errorf(format string, a ...interface{}) error {
 	p := newPrinter()
 	p.wrapErrs = true

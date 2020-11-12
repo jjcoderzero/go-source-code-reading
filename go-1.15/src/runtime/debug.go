@@ -1,22 +1,14 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package runtime
 
 import (
-	"runtime/internal/atomic"
+	"std/runtime/internal/atomic"
 	"unsafe"
 )
 
-// GOMAXPROCS sets the maximum number of CPUs that can be executing
-// simultaneously and returns the previous setting. If n < 1, it does not
-// change the current setting.
-// The number of logical CPUs on the local machine can be queried with NumCPU.
-// This call will go away when the scheduler improves.
+// GOMAXPROCS设置可以同时执行的cpu的最大数量，并返回之前的设置。如果n < 1，则不改变当前设置。可以使用NumCPU查询本地机器上逻辑cpu的数量。当调度器改进时，此调用将消失。
 func GOMAXPROCS(n int) int {
 	if GOARCH == "wasm" && n > 1 {
-		n = 1 // WebAssembly has no threads yet, so only one CPU is possible.
+		n = 1 // WebAssembly还没有线程，所以只能使用一个CPU。.
 	}
 
 	lock(&sched.lock)
@@ -28,7 +20,7 @@ func GOMAXPROCS(n int) int {
 
 	stopTheWorldGC("GOMAXPROCS")
 
-	// newprocs will be processed by startTheWorld
+	// newprocs将被startTheWorld处理
 	newprocs = int32(n)
 
 	startTheWorldGC()

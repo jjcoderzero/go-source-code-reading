@@ -1,10 +1,6 @@
-// Copyright 2014 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // +build !race
 
-// Dummy race detection API, used when not built with -race.
+// 虚拟竞态检测API，使用时不建立 -race.
 
 package runtime
 
@@ -14,7 +10,7 @@ import (
 
 const raceenabled = false
 
-// Because raceenabled is false, none of these functions should be called.
+// 因为raceenabled为false，所以不应该调用这些函数。
 
 func raceReadObjectPC(t *_type, addr unsafe.Pointer, callerpc, pc uintptr)  { throw("race") }
 func raceWriteObjectPC(t *_type, addr unsafe.Pointer, callerpc, pc uintptr) { throw("race") }

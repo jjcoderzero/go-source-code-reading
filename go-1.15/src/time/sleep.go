@@ -3,8 +3,7 @@ package time
 // Sleep会暂停当前goroutine至少持续时间d。如果持续时间为负或为零，则会立即返回Sleep。
 func Sleep(d Duration)
 
-// Interface to timers implemented in package runtime.
-// Must be in sync with ../runtime/time.go:/^type timer
+// 接口到在包运行时实现的计时器. Must be in sync with ../runtime/time.go:/^type timer
 type runtimeTimer struct {
 	pp       uintptr
 	when     int64

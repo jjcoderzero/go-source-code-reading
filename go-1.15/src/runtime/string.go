@@ -1,26 +1,16 @@
-// Copyright 2014 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package runtime
 
 import (
-	"internal/bytealg"
-	"runtime/internal/sys"
+	"std/internal/bytealg"
+	"std/runtime/internal/sys"
 	"unsafe"
 )
 
-// The constant is known to the compiler.
-// There is no fundamental theory behind this number.
-const tmpStringBufSize = 32
+const tmpStringBufSize = 32 // 这个常量是编译器所知道的。这个数字背后没有基本的理论。
 
 type tmpBuf [tmpStringBufSize]byte
 
-// concatstrings implements a Go string concatenation x+y+z+...
-// The operands are passed in the slice a.
-// If buf != nil, the compiler has determined that the result does not
-// escape the calling function, so the string data can be stored in buf
-// if small enough.
+// concatstrings实现了一个Go字符串连接x+y+z+…操作数在slice a中传递。如果buf != nil，编译器已经确定结果不会转义调用函数，所以如果足够小，字符串数据可以存储在buf中。
 func concatstrings(buf *tmpBuf, a []string) string {
 	idx := 0
 	l := 0
@@ -41,9 +31,7 @@ func concatstrings(buf *tmpBuf, a []string) string {
 		return ""
 	}
 
-	// If there is just one string and either it is not on the stack
-	// or our result does not escape the calling frame (buf != nil),
-	// then we can return that string directly.
+	// 如果只有一个字符串，或者它不在堆栈上，或者我们的结果没有转义调用帧(buf != nil)，那么我们可以直接返回该字符串。
 	if count == 1 && (buf != nil || !stringDataOnStack(a[idx])) {
 		return a[idx]
 	}
@@ -71,17 +59,10 @@ func concatstring5(buf *tmpBuf, a [5]string) string {
 	return concatstrings(buf, a[:])
 }
 
-// slicebytetostring converts a byte slice to a string.
-// It is inserted by the compiler into generated code.
-// ptr is a pointer to the first element of the slice;
-// n is the length of the slice.
-// Buf is a fixed-size buffer for the result,
-// it is not nil if the result does not escape.
+// slicebytetostring将字节片转换为字符串。它由编译器插入到生成的代码中。ptr是一个指向切片的第一个元素的指针;n是切片的长度。Buf是结果的固定大小的缓冲区，如果结果没有转义，它就不是nil。
 func slicebytetostring(buf *tmpBuf, ptr *byte, n int) (str string) {
 	if n == 0 {
-		// Turns out to be a relatively common case.
-		// Consider that you want to parse out data between parens in "foo()bar",
-		// you find the indices and convert the subslice to string.
+		// 这是一种比较常见的情况。考虑到你想要在“foo()bar”的parens之间解析数据，你找到索引并将子片转换为字符串。
 		return ""
 	}
 	if raceenabled {
@@ -351,7 +332,7 @@ func contains(s, t string) bool {
 	return index(s, t) >= 0
 }
 
-func hasPrefix(s, prefix string) bool {
+func hasPrefix(s, prefix string) bool { // 判断s的前缀是不是prefix。
 	return len(s) >= len(prefix) && s[:len(prefix)] == prefix
 }
 

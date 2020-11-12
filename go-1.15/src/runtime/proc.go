@@ -1,7 +1,3 @@
-// Copyright 2014 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package runtime
 
 import (
@@ -917,7 +913,7 @@ func stopTheWorld(reason string) {
 	})
 }
 
-// startTheWorld undoes the effects of stopTheWorld.
+// startTheWorld撤销stopTheWorld的效果。
 func startTheWorld() {
 	systemstack(func() { startTheWorldWithSema(false) })
 	// worldsema must be held over startTheWorldWithSema to ensure
@@ -926,15 +922,13 @@ func startTheWorld() {
 	getg().m.preemptoff = ""
 }
 
-// stopTheWorldGC has the same effect as stopTheWorld, but blocks
-// until the GC is not running. It also blocks a GC from starting
-// until startTheWorldGC is called.
+// stopTheWorldGC与stopTheWorld具有相同的效果，但会阻塞直到GC停止运行。它还会阻止一个GC从开始直到startTheWorldGC被调用。
 func stopTheWorldGC(reason string) {
 	semacquire(&gcsema)
 	stopTheWorld(reason)
 }
 
-// startTheWorldGC undoes the effects of stopTheWorldGC.
+// startTheWorldGC撤销stopTheWorldGC的效果。
 func startTheWorldGC() {
 	startTheWorld()
 	semrelease(&gcsema)

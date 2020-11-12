@@ -1,9 +1,3 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// Runtime type representation.
-
 package runtime
 
 import "unsafe"
@@ -30,7 +24,7 @@ const (
 // ../internal/reflectlite/type.go:/^type.rtype.
 type _type struct {
 	size       uintptr
-	ptrdata    uintptr // size of memory prefix holding all pointers
+	ptrdata    uintptr // 保存所有指针的内存前缀的大小
 	hash       uint32
 	tflag      tflag
 	align      uint8

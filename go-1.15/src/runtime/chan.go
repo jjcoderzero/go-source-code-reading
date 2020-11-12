@@ -1,7 +1,5 @@
 package runtime
 
-// This file contains the implementation of Go channels.
-
 // Invariants:
 //  At least one of c.sendq and c.recvq is empty,
 //  except for the case of an unbuffered channel with a single goroutine
@@ -14,8 +12,8 @@ package runtime
 //  c.qcount < c.dataqsiz implies that c.sendq is empty.
 
 import (
-	"runtime/internal/atomic"
-	"runtime/internal/math"
+	"std/runtime/internal/atomic"
+	"std/runtime/internal/math"
 	"unsafe"
 )
 
@@ -28,25 +26,19 @@ const (
 type hchan struct {
 	qcount   uint           // 当前队列中剩余元素个数
 	dataqsiz uint           // 环形队列长度，即可以存放的元素个数
-	buf      unsafe.Pointer // 环形队列指针
+	buf      unsafe.Pointer // 环形队列指针,只针对有缓冲的 channel
 	elemsize uint16         // 每个元素的大小
 	closed   uint32         // 标识关闭状态
 	elemtype *_type         // 元素类型
 	sendx    uint           // 队列下标，指示元素写入时存放到队列中的位置
 	recvx    uint           // 队列下标，指示元素从队列的该位置读出
-	recvq    waitq          // 等待读消息的goroutine队列
-	sendq    waitq          // 等待写消息的goroutine队列
+	recvq    waitq          // 表示被阻塞的 goroutine,等待读消息的goroutine队列
+	sendq    waitq          // 表示被阻塞的 goroutine,等待写消息的goroutine队列
 	// 一般情况下recvq和sendq至少有一个为空。只有一个例外，那就是同一个goroutine使用select语句向channel一边写数据，一边读数据。
-	// lock protects all fields in hchan, as well as several
-	// fields in sudogs blocked on this channel.
-	//
-	// Do not change another G's status while holding this lock
-	// (in particular, do not ready a G), as this can deadlock
-	// with stack shrinking.
-	lock mutex // 互斥锁，chan不允许并发读写
+	lock mutex // 互斥锁，chan不允许并发读写.lock保护hchan中的所有字段，以及在这个通道上被阻塞的sudogs中的几个字段。在持有这个锁时不要更改另一个G的状态(特别是，不要准备好一个G)，因为这会在堆栈收缩时导致死锁。
 }
 
-type waitq struct {
+type waitq struct {// waitq 是 sudog 的一个双向链表，而 sudog 实际上是对 goroutine 的一个封装
 	first *sudog
 	last  *sudog
 }
@@ -67,7 +59,7 @@ func makechan64(t *chantype, size int64) *hchan {
 func makechan(t *chantype, size int) *hchan {
 	elem := t.elem
 
-	// compiler checks this but be safe.
+	// 编译器检查这个，但是安全的。
 	if elem.size >= 1<<16 {
 		throw("makechan: invalid channel element type")
 	}
@@ -79,32 +71,26 @@ func makechan(t *chantype, size int) *hchan {
 	if overflow || mem > maxAlloc-hchanSize || size < 0 {
 		panic(plainError("makechan: size out of range"))
 	}
-
-	// Hchan does not contain pointers interesting for GC when elements stored in buf do not contain pointers.
-	// buf points into the same allocation, elemtype is persistent.
-	// SudoG's are referenced from their owning thread so they can't be collected.
-	// TODO(dvyukov,rlh): Rethink when collector can move allocated objects.
 	var c *hchan
 	switch {
 	case mem == 0:
 		// Queue or element 的大小是0
 		c = (*hchan)(mallocgc(hchanSize, nil, true))
-		// Race detector uses this location for synchronization.
+		// 竞争检测器使用此位置进行同步。
 		c.buf = c.raceaddr()
 	case elem.ptrdata == 0:
-		// Elements do not contain pointers.
-		// Allocate hchan and buf in one call.
+		// 元素不包含指针。在一次调用中分配hchan和buf。
 		c = (*hchan)(mallocgc(hchanSize+mem, nil, true))
 		c.buf = add(unsafe.Pointer(c), hchanSize)
 	default:
-		// Elements contain pointers.
+		// 进行两次内存分配操作
 		c = new(hchan)
 		c.buf = mallocgc(mem, elem, true)
 	}
 
 	c.elemsize = uint16(elem.size)
 	c.elemtype = elem
-	c.dataqsiz = uint(size)
+	c.dataqsiz = uint(size) // 循环数组长度
 	lockInit(&c.lock, lockRankHchan)
 
 	if debugChan {
@@ -113,23 +99,19 @@ func makechan(t *chantype, size int) *hchan {
 	return c
 }
 
-// chanbuf(c, i) is pointer to the i'th slot in the buffer.
+// chanbuf(c, i)是指向缓冲区第i个槽的指针。
 func chanbuf(c *hchan, i uint) unsafe.Pointer {
 	return add(c.buf, uintptr(i)*uintptr(c.elemsize))
 }
 
-// full reports whether a send on c would block (that is, the channel is full).
-// It uses a single word-sized read of mutable state, so although
-// the answer is instantaneously true, the correct answer may have changed
-// by the time the calling function receives the return value.
+// full报告c上的发送是否会阻塞(即通道已满)。它使用一个字大小的可变状态读取，因此，尽管答案是即时为真，但在调用函数接收到返回值时，正确的答案可能已经改变。
 func full(c *hchan) bool {
-	// c.dataqsiz is immutable (never written after the channel is created)
-	// so it is safe to read at any time during channel operation.
+	// c.dataqsiz是不可变的(在通道创建后从不写入)，因此在通道操作期间的任何时候读取都是安全的。
 	if c.dataqsiz == 0 {
-		// Assumes that a pointer read is relaxed-atomic.
+		// 假设指针读取是松弛原子性的。
 		return c.recvq.first == nil
 	}
-	// Assumes that a uint read is relaxed-atomic.
+	// 假设uint读取是松弛原子
 	return c.qcount == c.dataqsiz
 }
 
@@ -139,18 +121,7 @@ func chansend1(c *hchan, elem unsafe.Pointer) {
 	chansend(c, elem, true, getcallerpc())
 }
 
-/*
- * generic single channel send/recv
- * If block is not nil,
- * then the protocol will not
- * sleep but return if it could
- * not complete.
- *
- * sleep can wake up with g.param == nil
- * when a channel involved in the sleep has
- * been closed.  it is easiest to loop and re-run
- * the operation; we'll see that it's now closed.
- */
+// 一般单通道send/recv.如果block不是nil，那么协议将不会睡眠，但如果它不能完成返回。当涉及睡眠的通道被关闭时，睡眠可以通过g.param == nil唤醒。它是最容易循环和重新运行的操作;我们会让它关闭的。
 func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr) bool {
 	if c == nil {
 		if !block {
@@ -279,20 +250,14 @@ func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr) bool {
 	return true
 }
 
-// send processes a send operation on an empty channel c.
-// The value ep sent by the sender is copied to the receiver sg.
-// The receiver is then woken up to go on its merry way.
-// Channel c must be empty and locked.  send unlocks c with unlockf.
-// sg must already be dequeued from c.
-// ep must be non-nil and point to the heap or the caller's stack.
+// send处理一个空通道c上的send操作。发送方发送的值ep被复制到接收方sg。然后，收信人被叫醒，继续自己的快乐之路。通道c必须是空的和锁定的。发送unlocks c与unlockf。
+// sg必须已经从c中退出队列。ep必须是非nil并且指向堆或调用者的堆栈。
 func send(c *hchan, sg *sudog, ep unsafe.Pointer, unlockf func(), skip int) {
 	if raceenabled {
 		if c.dataqsiz == 0 {
 			racesync(c, sg)
 		} else {
-			// Pretend we go through the buffer, even though
-			// we copy directly. Note that we need to increment
-			// the head/tail locations only when raceenabled.
+			// 假设我们通过缓冲区，即使我们直接复制。注意，我们需要增加头/尾的位置，只有当竞争启用时。
 			qp := chanbuf(c, c.recvx)
 			raceacquire(qp)
 			racerelease(qp)
@@ -588,19 +553,10 @@ func chanrecv(c *hchan, ep unsafe.Pointer, block bool) (selected, received bool)
 	return true, !closed
 }
 
-// recv processes a receive operation on a full channel c.
-// There are 2 parts:
-// 1) The value sent by the sender sg is put into the channel
-//    and the sender is woken up to go on its merry way.
-// 2) The value received by the receiver (the current G) is
-//    written to ep.
-// For synchronous channels, both values are the same.
-// For asynchronous channels, the receiver gets its data from
-// the channel buffer and the sender's data is put in the
-// channel buffer.
-// Channel c must be full and locked. recv unlocks c with unlockf.
-// sg must already be dequeued from c.
-// A non-nil ep must point to the heap or the caller's stack.
+// recv进程在一个全通道c接收操作。有2部分:
+//1)发送方sg发送的值被放入信道，然后唤醒发送方继续它的愉快的方式。
+//2)将接收方接收到的值(当前G)写入ep。
+//对于同步通道，这两个值是相同的。对于异步通道，接收方从通道缓冲区获取数据，发送方的数据放在通道缓冲区中。通道c必须满锁。recv用unlockf解锁c。sg必须已经从c中退出队列。一个非nil ep必须指向堆或调用者的堆栈。
 func recv(c *hchan, sg *sudog, ep unsafe.Pointer, unlockf func(), skip int) {
 	if c.dataqsiz == 0 {
 		if raceenabled {
@@ -816,11 +772,7 @@ func (q *waitq) dequeue() *sudog {
 }
 
 func (c *hchan) raceaddr() unsafe.Pointer {
-	// Treat read-like and write-like operations on the channel to
-	// happen at this address. Avoid using the address of qcount
-	// or dataqsiz, because the len() and cap() builtins read
-	// those addresses, and we don't want them racing with
-	// operations like close().
+	// 处理在此地址发生的通道上的类读和类写操作。避免使用qcount或dataqsiz地址，因为len()和cap()内置函数读取这些地址，而且我们不希望它们与close()之类的操作发生冲突。
 	return unsafe.Pointer(&c.buf)
 }
 

@@ -1,13 +1,9 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package runtime
 
 import (
-	"internal/cpu"
-	"runtime/internal/atomic"
-	"runtime/internal/sys"
+	"std/internal/cpu"
+	"std/runtime/internal/atomic"
+	"std/runtime/internal/sys"
 	"unsafe"
 )
 
@@ -332,60 +328,47 @@ type gobuf struct {
 	bp   uintptr // for GOEXPERIMENT=framepointer
 }
 
-// sudog represents a g in a wait list, such as for sending/receiving
-// on a channel.
-//
-// sudog is necessary because the g ↔ synchronization object relation
-// is many-to-many. A g can be on many wait lists, so there may be
-// many sudogs for one g; and many gs may be waiting on the same
-// synchronization object, so there may be many sudogs for one object.
-//
-// sudogs are allocated from a special pool. Use acquireSudog and
-// releaseSudog to allocate and free them.
+// sudog表示等待列表中的g，例如在通道上发送/接收。
+// sudog是必要的，因为g既是同步对象关系是多对多的。一个g可以在很多等待名单上，所以一个g可能有很多个sudogs;许多gs可能在等待同一个同步对象，因此一个对象可能有许多sudogs。
+// sudogs是从一个特殊的池中分配的。使用acquireSudog和releaseSudog来分配和释放它们。
 type sudog struct {
-	// The following fields are protected by the hchan.lock of the
-	// channel this sudog is blocking on. shrinkstack depends on
-	// this for sudogs involved in channel ops.
+	// 以下字段由hchan保护。这个sudog阻塞的通道的锁。对于通道操作中涉及的sudogs, shrinkstack依赖于此。
 
 	g *g
 
 	next *sudog
 	prev *sudog
-	elem unsafe.Pointer // data element (may point to stack)
+	elem unsafe.Pointer // 数据元素(可能指向堆栈)
 
-	// The following fields are never accessed concurrently.
-	// For channels, waitlink is only accessed by g.
-	// For semaphores, all fields (including the ones above)
-	// are only accessed when holding a semaRoot lock.
+	// 以下字段永远不能并发访问。对于通道，waitlink只被g访问。对于信号量，所有字段(包括上面的字段)只有在持有semaRoot锁时才能访问。
 
 	acquiretime int64
 	releasetime int64
 	ticket      uint32
 
-	// isSelect indicates g is participating in a select, so
-	// g.selectDone must be CAS'd to win the wake-up race.
+	// isSelect表示g正在参与一个选择，所以g. selectdone必须被释放才能赢得唤醒比赛。
 	isSelect bool
 
-	parent   *sudog // semaRoot binary tree
-	waitlink *sudog // g.waiting list or semaRoot
+	parent   *sudog // semaRoot二叉树
+	waitlink *sudog // g.waiting列表或semaRoot
 	waittail *sudog // semaRoot
 	c        *hchan // channel
 }
 
 type libcall struct {
 	fn   uintptr
-	n    uintptr // number of parameters
-	args uintptr // parameters
-	r1   uintptr // return values
+	n    uintptr // 参数的数量
+	args uintptr // 参数
+	r1   uintptr // 返回值
 	r2   uintptr
-	err  uintptr // error number
+	err  uintptr // 错误数量
 }
 
-// describes how to handle callback
+// 描述如何处理回调
 type wincallbackcontext struct {
-	gobody       unsafe.Pointer // go function to call
-	argsize      uintptr        // callback arguments size (in bytes)
-	restorestack uintptr        // adjust stack on return by (in bytes) (386 only)
+	gobody       unsafe.Pointer // 调用函数
+	argsize      uintptr        // 回调参数大小(字节)
+	restorestack uintptr        // 通过(字节数)(仅386)在返回时调整堆栈
 	cleanstack   bool
 }
 
@@ -411,9 +394,9 @@ type g struct {
 	// stackguard1 is the stack pointer compared in the C stack growth prologue.
 	// It is stack.lo+StackGuard on g0 and gsignal stacks.
 	// It is ~0 on other goroutine stacks, to trigger a call to morestackc (and crash).
-	stack       stack   // offset known to runtime/cgo
-	stackguard0 uintptr // offset known to liblink
-	stackguard1 uintptr // offset known to liblink
+	stack       stack   // runtime/cgo已知的偏移量
+	stackguard0 uintptr // liblink已知的偏移量
+	stackguard1 uintptr // liblink已知的偏移量
 
 	_panic       *_panic // innermost panic - offset known to liblink
 	_defer       *_defer // innermost defer
@@ -497,7 +480,7 @@ type m struct {
 	sigmask       sigset       // storage for saved signal mask
 	tls           [6]uintptr   // thread-local storage (for x86 extern register)
 	mstartfn      func()
-	curg          *g       // current running goroutine
+	curg          *g       // 当前运行goroutine
 	caughtsig     guintptr // goroutine running during fatal signal
 	p             puintptr // attached p for executing go code (nil if not executing go code)
 	nextp         puintptr

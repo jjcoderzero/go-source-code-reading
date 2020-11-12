@@ -115,21 +115,19 @@ type bmap struct {
 	// 注意:将所有的key打包在一起，然后将所有的elem放在一起会使代码比交替的key/elem/key/elem/更复杂一些。但它允许我们根据需要消除填充，例如，map[int64]int8。
 }
 
-// A hash iteration structure.
-// If you modify hiter, also change cmd/compile/internal/gc/reflect.go to indicate
-// the layout of this structure.
+// 哈希迭代结构。如果你修改了hiter，也要修改cmd/compile/internal/gc/reflect.go来显示这个结构的布局。
 type hiter struct {
-	key         unsafe.Pointer // Must be in first position.  Write nil to indicate iteration end (see cmd/internal/gc/range.go).
-	elem        unsafe.Pointer // Must be in second position (see cmd/internal/gc/range.go).
+	key         unsafe.Pointer // 必须站在第一位。写nil来表示迭代结束(参见cmd/internal/gc/range.go)。
+	elem        unsafe.Pointer // 必须在第二位置
 	t           *maptype
 	h           *hmap
-	buckets     unsafe.Pointer // bucket ptr at hash_iter initialization time
-	bptr        *bmap          // current bucket
-	overflow    *[]*bmap       // keeps overflow buckets of hmap.buckets alive
-	oldoverflow *[]*bmap       // keeps overflow buckets of hmap.oldbuckets alive
-	startBucket uintptr        // bucket iteration started at
-	offset      uint8          // intra-bucket offset to start from during iteration (should be big enough to hold bucketCnt-1)
-	wrapped     bool           // already wrapped around from end of bucket array to beginning
+	buckets     unsafe.Pointer // bucket ptr在hash_iter初始化时间
+	bptr        *bmap          // 当前bucket
+	overflow    *[]*bmap       // 保持hmap.buckets的overflow bucket是活动的
+	oldoverflow *[]*bmap       // 保持hmap.oldbuckets的overflow bucket是活动的
+	startBucket uintptr        // 桶迭代开始于
+	offset      uint8          // 在迭代期间开始的桶内偏移量(应该足够大以容纳bucketCnt-1)
+	wrapped     bool           // 已经从bucket数组的末尾缠绕到数组的开始
 	B           uint8
 	i           uint8
 	bucket      uintptr
@@ -243,9 +241,7 @@ func makemap64(t *maptype, hint int64, h *hmap) *hmap {
 	return makemap(t, int(hint), h)
 }
 
-// makemap_small implements Go map creation for make(map[k]v) and
-// make(map[k]v, hint) when hint is known to be at most bucketCnt
-// at compile time and the map needs to be allocated on the heap.
+// makemap_small为make(map[k]v)和make(map[k]v, hint)实现Go映射创建，当已知在编译时提示最多是bucketCnt，并且需要在堆上分配映射。
 func makemap_small() *hmap {
 	h := new(hmap)
 	h.hash0 = fastrand()
@@ -337,11 +333,7 @@ func makeBucketArray(t *maptype, b uint8, dirtyalloc unsafe.Pointer) (buckets un
 	return buckets, nextOverflow
 }
 
-// mapaccess1 returns a pointer to h[key].  Never returns nil, instead
-// it will return a reference to the zero object for the elem type if
-// the key is not in the map.
-// NOTE: The returned pointer may keep the whole map live, so don't
-// hold onto it for very long.
+// mapaccess1返回一个指向h[key]的指针。从不返回nil，相反，如果键不在映射中，它将返回对elem类型的零对象的引用。注意:返回的指针可能会保持整个映射的活动，所以不要保持它很长时间。
 func mapaccess1(t *maptype, h *hmap, key unsafe.Pointer) unsafe.Pointer {
 	if raceenabled && h != nil {
 		callerpc := getcallerpc()

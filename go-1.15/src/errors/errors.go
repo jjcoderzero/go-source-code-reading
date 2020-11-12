@@ -49,13 +49,12 @@
 // because the former will succeed if err wraps an *os.PathError.
 package errors
 
-// New returns an error that formats as the given text.
-// Each call to New returns a distinct error value even if the text is identical.
+// New返回一个错误，该错误将格式化为给定的文本。每次调用New都会返回一个不同的错误值，即使文本是相同的。
 func New(text string) error {
 	return &errorString{text}
 }
 
-// errorString is a trivial implementation of error.
+// errorString是error的一个简单实现。
 type errorString struct {
 	s string
 }

@@ -103,7 +103,7 @@ func (l *List) remove(e *Element) *Element {
 	return e
 }
 
-// move moves e to next to at and returns e.
+// move将e移到at的旁边，然后返回e。
 func (l *List) move(e, at *Element) *Element {
 	if e == at {
 		return e
@@ -119,60 +119,48 @@ func (l *List) move(e, at *Element) *Element {
 	return e
 }
 
-// Remove removes e from l if e is an element of list l.
-// It returns the element value e.Value.
-// The element must not be nil.
+// 如果e是列表l的一个元素，那么Remove将e从l中移除。它返回元素值e. value。元素不能为nil。
 func (l *List) Remove(e *Element) interface{} {
 	if e.list == l {
-		// if e.list == l, l must have been initialized when e was inserted
-		// in l or l == nil (e is a zero Element) and l.remove will crash
+		// 如果e.list == l，则l必须在e插入l时已经初始化，或者l == nil (e是一个零元素)，并且l.remove将崩溃
 		l.remove(e)
 	}
 	return e.Value
 }
 
-// PushFront inserts a new element e with value v at the front of list l and returns e.
+// PushFront在列表l的前面插入一个新元素e，并返回e。
 func (l *List) PushFront(v interface{}) *Element {
 	l.lazyInit()
 	return l.insertValue(v, &l.root)
 }
 
-// PushBack inserts a new element e with value v at the back of list l and returns e.
+// PushBack在列表l的后面插入一个新元素e，其值为v，并返回e。
 func (l *List) PushBack(v interface{}) *Element {
 	l.lazyInit()
 	return l.insertValue(v, l.root.prev)
 }
 
-// InsertBefore inserts a new element e with value v immediately before mark and returns e.
-// If mark is not an element of l, the list is not modified.
-// The mark must not be nil.
+// InsertBefore在标记的前面插入一个值为v的新元素e，并返回e。如果标记不是l的元素，则列表不会被修改。标记不得为零。
 func (l *List) InsertBefore(v interface{}, mark *Element) *Element {
 	if mark.list != l {
 		return nil
 	}
-	// see comment in List.Remove about initialization of l
 	return l.insertValue(v, mark.prev)
 }
 
-// InsertAfter inserts a new element e with value v immediately after mark and returns e.
-// If mark is not an element of l, the list is not modified.
-// The mark must not be nil.
+// InsertAfter 在标记后面插入一个新元素e，值为v，然后返回e。如果标记不是l的元素，列表不会被修改。标记不得为零。
 func (l *List) InsertAfter(v interface{}, mark *Element) *Element {
 	if mark.list != l {
 		return nil
 	}
-	// see comment in List.Remove about initialization of l
 	return l.insertValue(v, mark)
 }
 
-// MoveToFront moves element e to the front of list l.
-// If e is not an element of l, the list is not modified.
-// The element must not be nil.
+// MoveToFront将元素e移动到列表l的前面。如果e不是l的元素，则列表不被修改。元素不能为nil。
 func (l *List) MoveToFront(e *Element) {
 	if e.list != l || l.root.next == e {
 		return
 	}
-	// see comment in List.Remove about initialization of l
 	l.move(e, &l.root)
 }
 
@@ -187,9 +175,7 @@ func (l *List) MoveToBack(e *Element) {
 	l.move(e, l.root.prev)
 }
 
-// MoveBefore moves element e to its new position before mark.
-// If e or mark is not an element of l, or e == mark, the list is not modified.
-// The element and mark must not be nil.
+// MoveToBack将元素e移动到列表l的后面，如果e不是l的元素，则列表不会被修改。元素不能为nil。
 func (l *List) MoveBefore(e, mark *Element) {
 	if e.list != l || e == mark || mark.list != l {
 		return
@@ -197,9 +183,7 @@ func (l *List) MoveBefore(e, mark *Element) {
 	l.move(e, mark.prev)
 }
 
-// MoveAfter moves element e to its new position after mark.
-// If e or mark is not an element of l, or e == mark, the list is not modified.
-// The element and mark must not be nil.
+// MoveAfter 将元素e移动到标记后的新位置。如果e或mark不是l的元素，或e == mark，则不修改列表。元素和标记不能为空。
 func (l *List) MoveAfter(e, mark *Element) {
 	if e.list != l || e == mark || mark.list != l {
 		return
@@ -207,8 +191,7 @@ func (l *List) MoveAfter(e, mark *Element) {
 	l.move(e, mark)
 }
 
-// PushBackList inserts a copy of another list at the back of list l.
-// The lists l and other may be the same. They must not be nil.
+// PushBackList在列表l的后面插入另一个列表的副本。列表l和其他列表可能是相同的。它们不能是零。
 func (l *List) PushBackList(other *List) {
 	l.lazyInit()
 	for i, e := other.Len(), other.Front(); i > 0; i, e = i-1, e.Next() {
@@ -216,8 +199,7 @@ func (l *List) PushBackList(other *List) {
 	}
 }
 
-// PushFrontList inserts a copy of another list at the front of list l.
-// The lists l and other may be the same. They must not be nil.
+// PushFrontList在列表l的前面插入另一个列表的副本。列表l和其他列表可能是相同的。它们不能是零。
 func (l *List) PushFrontList(other *List) {
 	l.lazyInit()
 	for i, e := other.Len(), other.Back(); i > 0; i, e = i-1, e.Prev() {

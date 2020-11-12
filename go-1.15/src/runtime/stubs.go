@@ -1,7 +1,3 @@
-// Copyright 2014 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package runtime
 
 import "unsafe"
@@ -12,9 +8,7 @@ func add(p unsafe.Pointer, x uintptr) unsafe.Pointer {
 	return unsafe.Pointer(uintptr(p) + x)
 }
 
-// getg returns the pointer to the current g.
-// The compiler rewrites calls to this function into instructions
-// that fetch the g directly (from TLS or from the dedicated register).
+// getg返回当前g的指针。编译器将对该函数的调用重写为直接获取g的指令(从TLS或专用寄存器)。
 func getg() *g
 
 // mcall switches from the g to the g0 stack and invokes fn(g),
@@ -237,7 +231,7 @@ func publicationBarrier()
 func getcallerpc() uintptr
 
 //go:noescape
-func getcallersp() uintptr // implemented as an intrinsic on all platforms
+func getcallersp() uintptr // 作为所有平台上的内在实现
 
 // getclosureptr returns the pointer to the current closure.
 // getclosureptr can only be used in an assignment statement

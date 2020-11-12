@@ -1,72 +1,44 @@
-// Copyright 2013 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package sync
 
 import (
-	"internal/race"
 	"runtime"
+	"std/internal/race"
 	"sync/atomic"
 	"unsafe"
 )
 
-// A Pool is a set of temporary objects that may be individually saved and
-// retrieved.
+// Pool是一组可以单独保存和检索的临时对象。
+// 存储在池中的任何项都可以在任何时候自动删除，而不需要通知。如果在这种情况发生时池持有唯一的引用，则项目可能被释放。
+// 一个池是安全的，由多个goroutines同时使用。
+// 池的目的是缓存已分配但未使用的项目，以便以后重用，减轻垃圾收集器的压力。也就是说，它可以很容易地构建高效的、线程安全的空闲列表。
+// 但是，它并不适用于所有空闲列表。池的适当使用是管理一组临时项，这些临时项在包的并发独立客户端之间以静默方式共享，并可能由这些客户端重用。
+// Pool提供了一种在许多客户端分摊分配开销的方法。良好使用池的一个例子是fmt包，它维护临时输出缓冲区的动态大小的存储。
+// 商店在负载下缩放(当许多goroutines正在积极打印)，并在静止时收缩。另一方面，作为短期存在对象的一部分维护的空闲列表不适用于池，因为开销在该场景中不能很好地摊销。
+// 让这些对象实现它们自己的空闲列表会更有效。
 //
-// Any item stored in the Pool may be removed automatically at any time without
-// notification. If the Pool holds the only reference when this happens, the
-// item might be deallocated.
-//
-// A Pool is safe for use by multiple goroutines simultaneously.
-//
-// Pool's purpose is to cache allocated but unused items for later reuse,
-// relieving pressure on the garbage collector. That is, it makes it easy to
-// build efficient, thread-safe free lists. However, it is not suitable for all
-// free lists.
-//
-// An appropriate use of a Pool is to manage a group of temporary items
-// silently shared among and potentially reused by concurrent independent
-// clients of a package. Pool provides a way to amortize allocation overhead
-// across many clients.
-//
-// An example of good use of a Pool is in the fmt package, which maintains a
-// dynamically-sized store of temporary output buffers. The store scales under
-// load (when many goroutines are actively printing) and shrinks when
-// quiescent.
-//
-// On the other hand, a free list maintained as part of a short-lived object is
-// not a suitable use for a Pool, since the overhead does not amortize well in
-// that scenario. It is more efficient to have such objects implement their own
-// free list.
-//
-// A Pool must not be copied after first use.
+// 池在第一次使用后不能复制。
 type Pool struct {
 	noCopy noCopy
 
-	local     unsafe.Pointer // local fixed-size per-P pool, actual type is [P]poolLocal
-	localSize uintptr        // size of the local array
+	local     unsafe.Pointer // 本地固定大小的per-P池，实际类型为[P]poolLocal
+	localSize uintptr        // 本地数组的大小
 
-	victim     unsafe.Pointer // local from previous cycle
-	victimSize uintptr        // size of victims array
+	victim     unsafe.Pointer // 前一个周期的局部
+	victimSize uintptr        // victims数组的大小
 
-	// New optionally specifies a function to generate
-	// a value when Get would otherwise return nil.
-	// It may not be changed concurrently with calls to Get.
-	New func() interface{}
+	New func() interface{} // 当Get返回nil时，New可选地指定一个函数来生成一个值。不能在调用Get时同时更改它。
 }
 
-// Local per-P Pool appendix.
+// 本地per-P池附录。
 type poolLocalInternal struct {
-	private interface{} // Can be used only by the respective P.
+	private interface{} // 只能被各自的P所使用。
 	shared  poolChain   // Local P can pushHead/popHead; any P can popTail.
 }
 
 type poolLocal struct {
 	poolLocalInternal
 
-	// Prevents false sharing on widespread platforms with
-	// 128 mod (cache line size) = 0 .
+	// 防止在广泛使用的平台上的错误共享128 mod(高速缓存线大小)= 0。
 	pad [128 - unsafe.Sizeof(poolLocalInternal{})%128]byte
 }
 
@@ -75,11 +47,7 @@ func fastrand() uint32
 
 var poolRaceHash [128]uint64
 
-// poolRaceAddr returns an address to use as the synchronization point
-// for race detector logic. We don't use the actual pointer stored in x
-// directly, for fear of conflicting with other synchronization on that address.
-// Instead, we hash the pointer to get an index into poolRaceHash.
-// See discussion on golang.org/cl/31589.
+// poolRaceAddr返回一个地址，用作竞争检测器逻辑的同步点。我们不直接使用存储在x中的实际指针，以免与该地址上的其他同步发生冲突。相反，我们对指针进行散列以获得到poolRaceHash的索引
 func poolRaceAddr(x interface{}) unsafe.Pointer {
 	ptr := uintptr((*[2]unsafe.Pointer)(unsafe.Pointer(&x))[1])
 	h := uint32((uint64(uint32(ptr)) * 0x85ebca6b) >> 16)
@@ -93,7 +61,7 @@ func (p *Pool) Put(x interface{}) {
 	}
 	if race.Enabled {
 		if fastrand()%4 == 0 {
-			// Randomly drop x on floor.
+			// 随机把x丢在地板上。
 			return
 		}
 		race.ReleaseMerge(poolRaceAddr(x))
@@ -113,14 +81,8 @@ func (p *Pool) Put(x interface{}) {
 	}
 }
 
-// Get selects an arbitrary item from the Pool, removes it from the
-// Pool, and returns it to the caller.
-// Get may choose to ignore the pool and treat it as empty.
-// Callers should not assume any relation between values passed to Put and
-// the values returned by Get.
-//
-// If Get would otherwise return nil and p.New is non-nil, Get returns
-// the result of calling p.New.
+// Get从池中选择一个任意项，将其从池中移除，并将其返回给调用者。Get可能选择忽略池并将其视为空。调用者不应该假定传递给Put的值和Get返回的值之间有任何关系。
+// 如果Get返回nil，而p.New是非nil，那么Get返回调用p.New的结果。
 func (p *Pool) Get() interface{} {
 	if race.Enabled {
 		race.Disable()
@@ -189,9 +151,7 @@ func (p *Pool) getSlow(pid int) interface{} {
 	return nil
 }
 
-// pin pins the current goroutine to P, disables preemption and
-// returns poolLocal pool for the P and the P's id.
-// Caller must call runtime_procUnpin() when done with the pool.
+// pin将当前goroutine引到P，禁用抢占并返回P和P id的poolLocal池。调用者必须调用runtime_procUnpin()。
 func (p *Pool) pin() (*poolLocal, int) {
 	pid := runtime_procPin()
 	// In pinSlow we store to local and then to localSize, here we load in opposite order.
@@ -213,7 +173,7 @@ func (p *Pool) pinSlow() (*poolLocal, int) {
 	allPoolsMu.Lock()
 	defer allPoolsMu.Unlock()
 	pid := runtime_procPin()
-	// poolCleanup won't be called while we are pinned.
+	// poolCleanup 不会被调用但我们被固定时。
 	s := p.localSize
 	l := p.local
 	if uintptr(pid) < s {
@@ -222,7 +182,7 @@ func (p *Pool) pinSlow() (*poolLocal, int) {
 	if p.local == nil {
 		allPools = append(allPools, p)
 	}
-	// If GOMAXPROCS changes between GCs, we re-allocate the array and lose the old one.
+	// 如果GOMAXPROCS在不同的GCs之间发生变化，我们将重新分配数组并丢失原来的那个。
 	size := runtime.GOMAXPROCS(0)
 	local := make([]poolLocal, size)
 	atomic.StorePointer(&p.local, unsafe.Pointer(&local[0])) // store-release
@@ -251,22 +211,16 @@ func poolCleanup() {
 		p.localSize = 0
 	}
 
-	// The pools with non-empty primary caches now have non-empty
-	// victim caches and no pools have primary caches.
+	// 具有非空主缓存的池现在具有非空的victim缓存，并且没有池具有主缓存。
 	oldPools, allPools = allPools, nil
 }
 
 var (
 	allPoolsMu Mutex
 
-	// allPools is the set of pools that have non-empty primary
-	// caches. Protected by either 1) allPoolsMu and pinning or 2)
-	// STW.
-	allPools []*Pool
+	allPools []*Pool // allPools是一组具有非空主缓存的池。由1)allPoolsMu和pinning或2)STW保护。
 
-	// oldPools is the set of pools that may have non-empty victim
-	// caches. Protected by STW.
-	oldPools []*Pool
+	oldPools []*Pool // oldPools是一组可能具有非空victim缓存的池。受STW保护。
 )
 
 func init() {

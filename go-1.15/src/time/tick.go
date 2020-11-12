@@ -1,30 +1,19 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package time
 
 import "errors"
 
-// A Ticker holds a channel that delivers `ticks' of a clock
-// at intervals.
+// 一个Ticker持有一个通道，它每隔一段时间就发送一个时钟的“滴答声”。
 type Ticker struct {
-	C <-chan Time // The channel on which the ticks are delivered.
+	C <-chan Time // 传输滴答声的通道。
 	r runtimeTimer
 }
 
-// NewTicker returns a new Ticker containing a channel that will send the
-// time with a period specified by the duration argument.
-// It adjusts the intervals or drops ticks to make up for slow receivers.
-// The duration d must be greater than zero; if not, NewTicker will panic.
-// Stop the ticker to release associated resources.
+// NewTicker返回一个包含通道的Ticker，该通道将发送带有duration参数指定的时间段的时间。它调整间隔或滴答，以弥补慢Ticker。持续时间d必须大于零;否则，NewTicker将会恐慌。停止Ticker以释放相关的资源。
 func NewTicker(d Duration) *Ticker {
 	if d <= 0 {
 		panic(errors.New("non-positive interval for NewTicker"))
 	}
-	// Give the channel a 1-element time buffer.
-	// If the client falls behind while reading, we drop ticks
-	// on the floor until the client catches up.
+	// 给通道一个1元素的时间缓冲。如果客户在阅读时落后了，我们就在地板上扔滴答声，直到客户赶上来。
 	c := make(chan Time, 1)
 	t := &Ticker{
 		C: c,
@@ -39,15 +28,12 @@ func NewTicker(d Duration) *Ticker {
 	return t
 }
 
-// Stop turns off a ticker. After Stop, no more ticks will be sent.
-// Stop does not close the channel, to prevent a concurrent goroutine
-// reading from the channel from seeing an erroneous "tick".
+// Stop停止a ticker. 停止后，将不再发送节拍。停止不关闭通道，以防止同时从通道读取goroutine看到一个错误的“滴答”。
 func (t *Ticker) Stop() {
 	stopTimer(&t.r)
 }
 
-// Reset stops a ticker and resets its period to the specified duration.
-// The next tick will arrive after the new period elapses.
+// Reset停止报价器并将其周期重置为指定的持续时间。下一个滴答将在新时期结束后到达。
 func (t *Ticker) Reset(d Duration) {
 	if t.r.f == nil {
 		panic("time: Reset called on uninitialized Ticker")
@@ -55,11 +41,7 @@ func (t *Ticker) Reset(d Duration) {
 	modTimer(&t.r, when(d), int64(d), t.r.f, t.r.arg, t.r.seq)
 }
 
-// Tick is a convenience wrapper for NewTicker providing access to the ticking
-// channel only. While Tick is useful for clients that have no need to shut down
-// the Ticker, be aware that without a way to shut it down the underlying
-// Ticker cannot be recovered by the garbage collector; it "leaks".
-// Unlike NewTicker, Tick will return nil if d <= 0.
+// Tick是一个方便的包装NewTicker提供访问滴答通道。滴答是有用的客户端，没有必要关闭的报价机，请注意，没有办法关闭它，底层报价机无法恢复的垃圾收集器;它“泄漏”。与NewTicker不同，Tick在d <= 0时返回nil。
 func Tick(d Duration) <-chan Time {
 	if d <= 0 {
 		return nil

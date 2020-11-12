@@ -35,9 +35,6 @@ type Reader struct {
 const minReadBufferSize = 16
 const maxConsecutiveEmptyReads = 100
 
-// NewReaderSize returns a new Reader whose buffer has at least the specified
-// size. If the argument io.Reader is already a Reader with large enough
-// size, it returns the underlying Reader.
 // NewReaderSize返回一个新的Reader，其缓冲区至少具有指定的大小。如果参数io.Reader已经是一个足够大的Reader，它返回底层的Reader。
 func NewReaderSize(rd io.Reader, size int) *Reader {
 	// Is it already a Reader?

@@ -1,6 +1,6 @@
 package bytes
 
-// Simple byte buffer for marshaling data.
+// 用于封送数据的简单字节缓冲区。
 
 import (
 	"errors"
@@ -8,11 +8,10 @@ import (
 	"unicode/utf8"
 )
 
-// smallBufferSize is an initial allocation minimal capacity.
+// smallBufferSize是初始分配的最小容量.
 const smallBufferSize = 64
 
-// A Buffer is a variable-sized buffer of bytes with Read and Write methods.
-// The zero value for Buffer is an empty buffer ready to use.
+// 缓冲区是具有读写方法的可变大小的字节缓冲区。缓冲区的零值是准备使用的空缓冲区。
 type Buffer struct {
 	buf      []byte // contents are the bytes buf[off : len(buf)]
 	off      int    // read at &buf[off], write at &buf[len(buf)]

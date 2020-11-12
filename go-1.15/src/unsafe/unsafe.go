@@ -165,29 +165,18 @@ type ArbitraryType int
 //	hdr.Len = n
 //	s := *(*string)(unsafe.Pointer(&hdr)) // p possibly already lost
 //
-type Pointer *ArbitraryType
+type Pointer *ArbitraryType // Pointer 可以指向任意类型，实际上它类似于 C 语言里的 void*。
 
-// Sizeof takes an expression x of any type and returns the size in bytes
-// of a hypothetical variable v as if v was declared via var v = x.
-// The size does not include any memory possibly referenced by x.
-// For instance, if x is a slice, Sizeof returns the size of the slice
-// descriptor, not the size of the memory referenced by the slice.
-// The return value of Sizeof is a Go constant.
+// Sizeof 返回类型 x 所占据的字节数，但不包含 x 所指向的内容的大小。例如，对于一个指针，函数返回的大小为 8 字节（64位机上），一个 slice 的大小则为 slice header 的大小。
 func Sizeof(x ArbitraryType) uintptr
 
-// Offsetof returns the offset within the struct of the field represented by x,
-// which must be of the form structValue.field. In other words, it returns the
-// number of bytes between the start of the struct and the start of the field.
-// The return value of Offsetof is a Go constant.
+// Offsetof 返回结构体成员在内存中的位置离结构体起始处的字节数，所传参数必须是结构体的成员。
 func Offsetof(x ArbitraryType) uintptr
 
-// Alignof takes an expression x of any type and returns the required alignment
-// of a hypothetical variable v as if v was declared via var v = x.
-// It is the largest value m such that the address of v is always zero mod m.
-// It is the same as the value returned by reflect.TypeOf(x).Align().
-// As a special case, if a variable s is of struct type and f is a field
-// within that struct, then Alignof(s.f) will return the required alignment
-// of a field of that type within a struct. This case is the same as the
-// value returned by reflect.TypeOf(s.f).FieldAlign().
-// The return value of Alignof is a Go constant.
+// Alignof 返回 m，m 是指当类型进行内存对齐时，它分配到的内存地址能整除 m。
 func Alignof(x ArbitraryType) uintptr
+
+// 任何类型的指针和 unsafe.Pointer 可以相互转换。 uintptr 类型和 unsafe.Pointer 可以相互转换。
+// pointer 不能直接进行数学运算，但可以把它转换成 uintptr，对 uintptr 类型进行数学运算，再转换成 pointer 类型。
+// uintptr 并没有指针的语义，意思就是 uintptr 所指向的对象会被 gc 无情地回收。而 unsafe.Pointer 有指针语义，可以保护它所指向的对象在“有用”的时候不会被垃圾回收。
+// 通过 unsafe 相关函数，可以获取结构体私有成员的地址，进而对其做进一步的读写操作，突破 Go 的类型安全限制。
